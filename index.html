@@ -1,0 +1,689 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { Search, Wrench, AlertTriangle, Info, Database, Zap, Activity, GitBranch, Cpu, Thermometer, Wind, BookOpen, Gauge, Map, Shield, Radio, Flame, Droplet, AlertCircle, Share2, History, X, MapPin, Smartphone, Instagram, ChevronRight, Menu } from 'lucide-react';
+
+export default function App() {
+    const [searchTerm, setSearchTerm] = useState("");
+    const [filter, setFilter] = useState("ALL");
+    const [currentView, setCurrentView] = useState("codes");
+    const [history, setHistory] = useState([]);
+    const [showPortGuide, setShowPortGuide] = useState(false);
+
+    // Cargar historial al inicio
+    useEffect(() => {
+        const savedHistory = localStorage.getItem('obd2_history');
+        if (savedHistory) {
+            setHistory(JSON.parse(savedHistory));
+        }
+    }, []);
+
+    const addToHistory = (code) => {
+        const newHistory = [code, ...history.filter(c => c.id !== code.id)].slice(0, 5);
+        setHistory(newHistory);
+        localStorage.setItem('obd2_history', JSON.stringify(newHistory));
+    };
+
+    const clearHistory = () => {
+        setHistory([]);
+        localStorage.removeItem('obd2_history');
+    };
+
+    const handleShare = (code) => {
+        const text = `🔧 *Diagnóstico OBD2 - @Lemustech.ve* \n\n*Código:* ${code.id}\n*Sistema:* ${code.system}\n*Problema:* ${code.desc}\n*Síntomas:* ${code.symptoms}\n*Solución:* ${code.solution}`;
+        
+        if (navigator.share) {
+            navigator.share({
+                title: `Código OBD2 ${code.id}`,
+                text: text,
+            }).catch(console.error);
+        } else {
+            navigator.clipboard.writeText(text);
+            alert("Diagnóstico copiado al portapapeles");
+        }
+    };
+
+    // --- BASE DE DATOS MASIVA OBD-II ---
+    const codeDatabase = [
+        // P-CODES (MOTOR)
+        { id: "P0010", system: "Motor", desc: "Circuito actuador posición árbol levas 'A' (Banco 1)", symptoms: "Ralentí inestable, pérdida de potencia en altas RPM.", causes: "Solenoide VVT, aceite sucio, cableado.", solution: "Revisar solenoide VVT y nivel de aceite." },
+        { id: "P0011", system: "Motor", desc: "Posición árbol levas 'A' - Sincronización muy avanzada", symptoms: "Motor ruidoso, consumo excesivo, arranque difícil.", causes: "Aceite sucio, solenoide VVT atascado, falla mecánica.", solution: "Cambio de aceite, revisar solenoide VVT." },
+        { id: "P0012", system: "Motor", desc: "Posición árbol levas 'A' - Sincronización muy atrasada", symptoms: "Falta de potencia, ralentí bajo o inestable.", causes: "Aceite sucio, cadena estirada, solenoide VVT.", solution: "Revisar tiempo y presión de aceite." },
+        { id: "P0013", system: "Motor", desc: "Circuito actuador posición árbol levas 'B' (Banco 1)", symptoms: "Check Engine encendido, respuesta lenta del acelerador.", causes: "Solenoide de escape VVT, cableado.", solution: "Reemplazar solenoide de escape." },
+        { id: "P0014", system: "Motor", desc: "Posición árbol levas 'B' - Sincronización muy avanzada", symptoms: "Motor tiembla en ralentí, consumo alto.", causes: "Válvula OCV, aceite contaminado.", solution: "Limpiar válvulas OCV." },
+        { id: "P0016", system: "Motor", desc: "Correlación Posición Cigüeñal - Árbol Levas (Banco 1 A)", symptoms: "Motor gira pero no arranca, o arranca y se apaga.", causes: "Cadena/Correa de tiempo saltada o estirada, sensor dañado.", solution: "Verificar sincronización del motor (Punto)." },
+        { id: "P0017", system: "Motor", desc: "Correlación Posición Cigüeñal - Árbol Levas (Banco 1 B)", symptoms: "Pérdida severa de potencia, ruido en cadena de distribución.", causes: "Cadena de tiempo, sensor CMP/CKP.", solution: "Verificar puntos de sincronización." },
+        { id: "P0001", system: "Motor", desc: "Circuito control regulador volumen combustible - Abierto", symptoms: "El motor no arranca, modo de seguridad activado.", causes: "Cableado roto, solenoide regulador dañado.", solution: "Revisar arnés del regulador en bomba de alta." },
+        { id: "P0087", system: "Motor", desc: "Presión de riel de combustible (FRP) demasiado baja", symptoms: "Cortes al acelerar a fondo, motor entra en modo limitado.", causes: "Bomba de alta presión, filtro tapado, sensor FRP.", solution: "Revisar bomba de combustible y filtro." },
+        { id: "P0088", system: "Motor", desc: "Presión de riel de combustible (FRP) demasiado alta", symptoms: "Humo negro, motor ahogado, alto consumo.", causes: "Regulador de presión de combustible, línea de retorno obstruida.", solution: "Revisar regulador y líneas de retorno." },
+        { id: "P0089", system: "Motor", desc: "Rendimiento regulador presión combustible 1", symptoms: "Aceleración pobre, oscilación de RPM.", causes: "Regulador pegado, bomba fallando.", solution: "Prueba de flujo y presión de bomba." },
+        { id: "P0093", system: "Motor", desc: "Fuga grande sistema combustible detectada", symptoms: "Fuerte olor a combustible, riesgo de incendio.", causes: "Fuga en inyectores, líneas de alta presión.", solution: "Revisar fugas visibles de combustible." },
+        { id: "P0190", system: "Motor", desc: "Circuito sensor presión riel combustible (FRP)", symptoms: "El motor se apaga repentinamente.", causes: "Sensor FRP dañado, cableado.", solution: "Verificar voltaje del sensor FRP." },
+        { id: "P0191", system: "Motor", desc: "Rango/Desempeño sensor presión riel combustible", symptoms: "Dificultad de arranque, potencia intermitente.", causes: "Presión real inestable o sensor fallando.", solution: "Medir presión real con manómetro." },
+        { id: "P0192", system: "Motor", desc: "Entrada baja circuito sensor FRP", symptoms: "Motor no arranca o tarda mucho.", causes: "Corto a tierra en sensor FRP.", solution: "Revisar cableado del sensor." },
+        { id: "P0193", system: "Motor", desc: "Entrada alta circuito sensor FRP", symptoms: "Humo negro excesivo, funcionamiento errático.", causes: "Sensor desconectado o corto a positivo.", solution: "Revisar conector del sensor FRP." },
+        { id: "P0068", system: "Motor", desc: "Correlación MAP/MAF con Posición Mariposa", symptoms: "Modo 'Limbo' (poca potencia), cambios bruscos.", causes: "Fuga de vacío, sensor sucio, mariposa sucia.", solution: "Limpiar cuerpo aceleración y sensores." },
+        { id: "P0101", system: "Motor", desc: "Rango/Desempeño circuito MAF", symptoms: "Humo negro, se apaga en semáforos, jaloneos.", causes: "Sensor MAF sucio, fugas de aire post-MAF.", solution: "Limpiar MAF con spray especial, buscar fugas." },
+        { id: "P0102", system: "Motor", desc: "Entrada baja circuito MAF (Volumen aire bajo)", symptoms: "Ralentí muy inestable, falta de potencia al despegar.", causes: "Filtro muy sucio, sensor MAF desconectado.", solution: "Revisar conexión y filtro de aire." },
+        { id: "P0103", system: "Motor", desc: "Entrada alta circuito MAF", symptoms: "Aceleración brusca, alto consumo de combustible.", causes: "Corto en cable de señal, sensor MAF dañado.", solution: "Verificar voltaje del sensor." },
+        { id: "P0105", system: "Motor", desc: "Mal funcionamiento circuito presión absoluta (MAP)", symptoms: "Humo negro, motor tose o se ahoga.", causes: "Sensor dañado, fallo eléctrico.", solution: "Medir voltaje de señal MAP." },
+        { id: "P0106", system: "Motor", desc: "Rango/Desempeño circuito Presión Absoluta (MAP)", symptoms: "Ralentí sube y baja, motor se apaga solo.", causes: "Sensor MAP defectuoso, manguera de vacío rota.", solution: "Revisar mangueras al sensor MAP." },
+        { id: "P0107", system: "Motor", desc: "Entrada baja circuito MAP", symptoms: "Dificultad para arrancar, respuesta pobre.", causes: "Corto a tierra en señal.", solution: "Revisar cableado." },
+        { id: "P0108", system: "Motor", desc: "Entrada alta circuito MAP", symptoms: "Olor a gasolina cruda, consumo excesivo.", causes: "Corto a positivo o manguera desconectada.", solution: "Reconectar manguera de vacío." },
+        { id: "P0113", system: "Motor", desc: "Entrada alta circuito IAT (Temp. Aire)", symptoms: "Arranque difícil en días fríos.", causes: "Sensor desconectado (lee -40°C).", solution: "Conectar sensor o reparar cable abierto." },
+        { id: "P0115", system: "Motor", desc: "Circuito Temperatura Refrigerante (ECT)", symptoms: "Ventilador encendido siempre, aguja de temp loca.", causes: "Sensor ECT, termostato, nivel bajo refrigerante.", solution: "Revisar nivel de agua y conector del sensor." },
+        { id: "P0116", system: "Motor", desc: "Rango/Desempeño Temp. Refrigerante Motor", symptoms: "Medidor de temperatura fluctúa erráticamente.", causes: "Termostato fallando o sensor ECT errático.", solution: "Cambiar termostato y sensor." },
+        { id: "P0118", system: "Motor", desc: "Entrada alta circuito ECT (Temp. Motor)", symptoms: "Humo negro, cuesta arrancar en frío.", causes: "Sensor desconectado o cable roto.", solution: "Revisar arnés del sensor de temperatura." },
+        { id: "P0128", system: "Refrigeración", desc: "Termostato refrigerante (Temp. debajo regulación)", symptoms: "Calefacción no calienta, temperatura no sube.", causes: "Termostato pegado abierto (motor no calienta).", solution: "Reemplazar termostato." },
+        { id: "P0121", system: "Motor", desc: "Rango/Desempeño TPS (Sensor Pedal/Mariposa)", symptoms: "Respuesta muerta del pedal, aceleración lenta.", causes: "Cuerpo de aceleración sucio, sensor TPS desgastado.", solution: "Limpiar cuerpo de aceleración." },
+        { id: "P0122", system: "Motor", desc: "Entrada baja circuito TPS", symptoms: "El auto no acelera casi nada (Modo Tortuga).", causes: "Corto a tierra, sensor dañado.", solution: "Revisar voltaje de referencia (5V)." },
+        { id: "P0221", system: "Motor", desc: "Rango/Desempeño Sensor Pedal/Mariposa 'B'", symptoms: "El motor se queda acelerado o no responde.", causes: "Pedal o cuerpo de aceleración sucio/dañado.", solution: "Limpiar o recalibrar cuerpo aceleración." },
+        { id: "P0638", system: "Motor", desc: "Rango/Desempeño control actuador mariposa (Banco 1)", symptoms: "Luz de rayo rojo (ETC), sin aceleración.", causes: "Cuerpo aceleración sucio o motor interno dañado.", solution: "Limpieza profunda o reemplazo mariposa." },
+        { id: "P2135", system: "Motor", desc: "Correlación voltaje sensor A/B posición mariposa", symptoms: "Motor entra en modo emergencia (Limp Mode).", causes: "Desgaste en pistas del sensor TPS.", solution: "Reemplazar cuerpo de aceleración o sensor." },
+        { id: "P2138", system: "Motor", desc: "Correlación voltaje sensor D/E posición pedal (APP)", symptoms: "Pedal muerto, luz de llave inglesa.", causes: "Falla en el pedal del acelerador (potenciómetro).", solution: "Reemplazar pedal del acelerador." },
+        { id: "P0030", system: "Motor", desc: "Circuito control calefactor H02S (Banco 1 Sensor 1)", symptoms: "Tarda en entrar en 'Closed Loop', consumo alto.", causes: "Fusible quemado, resistencia del sensor abierta.", solution: "Revisar fusible y resistencia del sensor O2." },
+        { id: "P0130", system: "Motor", desc: "Circuito Sensor O2 (Banco 1 Sensor 1)", symptoms: "Consumo elevado de combustible.", causes: "Sensor viejo/lento, fugas de escape.", solution: "Reemplazar sensor de oxígeno primario." },
+        { id: "P0133", system: "Motor", desc: "Respuesta lenta circuito O2 (Banco 1 Sensor 1)", symptoms: "Falla leve en emisiones, consumo.", causes: "Sensor envejecido, contaminado.", solution: "Cambiar sensor O2." },
+        { id: "P0134", system: "Motor", desc: "Sensor O2 sin actividad (Banco 1 Sensor 1)", symptoms: "Humo negro, motor funciona 'Gordo' (Rico).", causes: "Sensor muerto, circuito abierto.", solution: "Reemplazar sensor O2." },
+        { id: "P0135", system: "Motor", desc: "Mal funcionamiento calefactor O2 (Banco 1 Sensor 1)", symptoms: "Mismo que P0030, falla al arrancar en frío.", causes: "Elemento calefactor interno quemado.", solution: "Reemplazar sensor O2." },
+        { id: "P0136", system: "Motor", desc: "Circuito Sensor O2 (Banco 1 Sensor 2 - Trasero)", symptoms: "Ninguno perceptible, solo Check Engine.", causes: "Sensor post-catalizador dañado, fugas de escape.", solution: "Reemplazar sensor trasero." },
+        { id: "P0141", system: "Motor", desc: "Mal funcionamiento calefactor O2 (Banco 1 Sensor 2)", symptoms: "Ninguno perceptible, falla prueba de emisiones.", causes: "Resistencia calefactora quemada sensor trasero.", solution: "Reemplazar sensor trasero O2." },
+        { id: "P0171", system: "Motor", desc: "Sistema demasiado pobre (Banco 1)", symptoms: "Pérdida de potencia, cascabeleo (detonación).", causes: "Fuga de vacío, inyector sucio, MAF sucio.", solution: "Buscar fugas de vacío con humo, limpiar MAF." },
+        { id: "P0172", system: "Motor", desc: "Sistema demasiado rico (Banco 1)", symptoms: "Olor a huevo podrido, humo negro, bujías negras.", causes: "Inyector goteando, MAF sucio, regulador presión.", solution: "Revisar presión de combustible y goteo inyectores." },
+        { id: "P0200", system: "Motor", desc: "Mal funcionamiento circuito inyectores", symptoms: "Motor falla un cilindro, olor a gasolina.", causes: "Cableado de inyectores, módulo driver en ECU.", solution: "Revisar continuidad en arnés de inyectores." },
+        { id: "P0234", system: "Motor", desc: "Turbo/Supercargador - Sobrepresión (Overboost)", symptoms: "Corte violento de inyección al acelerar.", causes: "Wastegate atascada cerrada, solenoide de control.", solution: "Revisar válvula wastegate y solenoide." },
+        { id: "P0235", system: "Motor", desc: "Circuito sensor A sobrealimentación turbo", symptoms: "Sin potencia, el turbo no parece funcionar.", causes: "Sensor MAP/Boost dañado o desconectado.", solution: "Revisar sensor de presión del turbo." },
+        { id: "P0236", system: "Motor", desc: "Rango/Desempeño sensor A sobrealimentación turbo", symptoms: "Potencia intermitente, silbido de aire.", causes: "Fuga de aire en mangueras intercooler.", solution: "Revisar fugas de presión de aire." },
+        { id: "P0237", system: "Motor", desc: "Entrada baja sensor A sobrealimentación turbo", symptoms: "Turbo desactivado por la computadora.", causes: "Sensor desconectado o corto a tierra.", solution: "Revisar conector sensor Boost." },
+        { id: "P0238", system: "Motor", desc: "Entrada alta sensor A sobrealimentación turbo", symptoms: "Humo negro, lecturas falsas de presión.", causes: "Cable de señal en corto a positivo.", solution: "Revisar cableado sensor Boost." },
+        { id: "P0299", system: "Motor", desc: "Turbo/Supercargador - Baja presión (Underboost)", symptoms: "Auto muy lento, sin fuerza en subidas.", causes: "Fugas en mangueras, turbo dañado, wastegate abierta.", solution: "Revisar fugas admisión y juego axial del turbo." },
+        { id: "P0380", system: "Diesel", desc: "Circuito bujías precalentamiento 'A'", symptoms: "Humo blanco al arrancar, arranque difícil en frío.", causes: "Bujías quemadas, relé de precalentamiento.", solution: "Cambiar bujías incandescentes o relé." },
+        { id: "P0381", system: "Diesel", desc: "Circuito indicador bujías precalentamiento", symptoms: "Luz de 'resorte' no enciende o parpadea.", causes: "Foco del tablero o cableado.", solution: "Revisar tablero y conexiones." },
+        { id: "P0300", system: "Encendido", desc: "Fallo de encendido aleatorio (Misfire múltiple)", symptoms: "Motor tiembla mucho, luz Check Engine parpadea.", causes: "Bujías, bobinas, vacío, combustible.", solution: "Diagnóstico completo de encendido." },
+        { id: "P0301", system: "Encendido", desc: "Fallo de encendido Cilindro 1", symptoms: "Vibración en ralentí, pérdida de fuerza.", causes: "Bujía, bobina, inyector o compresión cil 1.", solution: "Revisar componentes cilindro 1." },
+        { id: "P0302", system: "Encendido", desc: "Fallo de encendido Cilindro 2", symptoms: "Vibración en ralentí, pérdida de fuerza.", causes: "Bujía, bobina, inyector o compresión cil 2.", solution: "Revisar componentes cilindro 2." },
+        { id: "P0303", system: "Encendido", desc: "Fallo de encendido Cilindro 3", symptoms: "Vibración en ralentí, pérdida de fuerza.", causes: "Bujía, bobina, inyector o compresión cil 3.", solution: "Revisar componentes cilindro 3." },
+        { id: "P0304", system: "Encendido", desc: "Fallo de encendido Cilindro 4", symptoms: "Vibración en ralentí, pérdida de fuerza.", causes: "Bujía, bobina, inyector o compresión cil 4.", solution: "Revisar componentes cilindro 4." },
+        { id: "P0321", system: "Encendido", desc: "Rango/Desempeño entrada velocidad encendido/distribuidor", symptoms: "Corte de encendido a ciertas RPM.", causes: "Sensor CKP/G28 sucio o dañado (VAG).", solution: "Limpiar o cambiar sensor CKP." },
+        { id: "P0322", system: "Encendido", desc: "No hay señal de entrada velocidad encendido/distribuidor", symptoms: "El motor se apaga en marcha y no arranca.", causes: "Sensor de cigüeñal (CKP) muerto.", solution: "El auto se apaga; cambiar sensor CKP." },
+        { id: "P0325", system: "Encendido", desc: "Falla circuito Sensor Detonación (Knock) 1", symptoms: "Pérdida de potencia (ECU atrasa el tiempo).", causes: "Sensor dañado, conector corroído.", solution: "Reemplazar sensor de detonación." },
+        { id: "P0335", system: "Encendido", desc: "Circuito Sensor Posición Cigüeñal 'A' (CKP)", symptoms: "No arranca, tacómetro no se mueve al dar marcha.", causes: "Sensor CKP dañado, cableado cortado.", solution: "El auto no arranca; revisar señal CKP." },
+        { id: "P0340", system: "Encendido", desc: "Circuito Sensor Posición Árbol Levas (CMP)", symptoms: "Tarda mucho en arrancar, explosiones en admisión.", causes: "Sensor CMP, cableado, tiempo motor.", solution: "Revisar sensor y sincronización." },
+        { id: "P0341", system: "Encendido", desc: "Rango/Desempeño Sensor Posición Árbol Levas", symptoms: "Marcha mínima irregular, motor ruidoso.", causes: "Interferencia metal en sensor, tiempo saltado.", solution: "Revisar distribución y sensor." },
+        { id: "P0351", system: "Encendido", desc: "Bobina de Encendido 'A' Primaria/Secundaria", symptoms: "Misfire constante en un cilindro específico.", causes: "Bobina 1 quemada, driver ECU dañado.", solution: "Revisar conector y alimentación bobina 1." },
+        { id: "P0400", system: "EGR", desc: "Flujo defectuoso recirculación gases escape", symptoms: "Ralentí inestable o motor se apaga al frenar.", causes: "Conductos EGR tapados, manguera vacío.", solution: "Limpiar conductos y revisar vacío." },
+        { id: "P0401", system: "EGR", desc: "Flujo insuficiente EGR", symptoms: "Cascabeleo (detonación) al acelerar en carretera.", causes: "Válvula EGR tapada con carbón.", solution: "Desmontar y limpiar sistema EGR." },
+        { id: "P0402", system: "EGR", desc: "Flujo excesivo EGR", symptoms: "El motor se apaga inmediatamente al arrancar.", causes: "Válvula EGR pegada abierta.", solution: "Reemplazar válvula EGR." },
+        { id: "P0403", system: "EGR", desc: "Mal funcionamiento circuito control EGR", symptoms: "Check Engine encendido, falla en sistema EGR.", causes: "Solenoide EGR o motor eléctrico dañado.", solution: "Revisar resistencia eléctrica válvula EGR." },
+        { id: "P0404", system: "EGR", desc: "Rango/Desempeño circuito control EGR", symptoms: "Posición de válvula EGR no coincide con comando.", causes: "Válvula EGR no alcanza la posición deseada.", solution: "Limpiar vástago de la válvula EGR." },
+        { id: "P0420", system: "Escape", desc: "Eficiencia sistema catalizador baja (Banco 1)", symptoms: "Olor a azufre (huevo), sin síntomas de manejo.", causes: "Catalizador degradado.", solution: "Generalmente requiere cambio de catalizador." },
+        { id: "P0440", system: "EVAP", desc: "Mal funcionamiento sistema emisiones evaporativas", symptoms: "Olor a gasolina alrededor del auto.", causes: "Tapón gasolina, fugas.", solution: "Revisar sellado del sistema de combustible." },
+        { id: "P0441", system: "EVAP", desc: "Flujo incorrecto purga sistema EVAP", symptoms: "Dificultad para llenar el tanque gasolina.", causes: "Válvula de purga defectuosa.", solution: "Reemplazar válvula de purga del canister." },
+        { id: "P0442", system: "EVAP", desc: "Fuga pequeña sistema EVAP", symptoms: "Check Engine encendido (sin síntomas físicos).", causes: "Tapón gasolina flojo, o-ring reseco.", solution: "Apretar/cambiar tapón gasolina." },
+        { id: "P0446", system: "EVAP", desc: "Circuito control ventilación sistema EVAP", symptoms: "La pistola de gasolina se dispara al llenar.", causes: "Válvula Vent (cerca del tanque) dañada.", solution: "Revisar válvula de ventilación y canister." },
+        { id: "P0455", system: "EVAP", desc: "Fuga grande sistema EVAP", symptoms: "Olor fuerte a combustible.", causes: "Tapón ausente, manguera rota.", solution: "Prueba de humo para encontrar fuga." },
+        { id: "P0496", system: "EVAP", desc: "Flujo purga alto (Válvula pegada abierta)", symptoms: "Arranque difícil después de poner gasolina.", causes: "Válvula purga siempre abierta (succiona vacío).", solution: "Cambiar válvula de purga (Canister Purge)." },
+        { id: "P0500", system: "Velocidad", desc: "Sensor velocidad vehículo (VSS)", symptoms: "Velocímetro marca 0, caja automática falla.", causes: "Sensor VSS, cableado, engranaje.", solution: "Revisar sensor en transmisión." },
+        { id: "P0501", system: "Velocidad", desc: "Rango/Desempeño sensor velocidad vehículo", symptoms: "Velocímetro salta o marca errático.", causes: "Señal VSS errática, interferencia.", solution: "Revisar sensor y anillo reluctor." },
+        { id: "P0505", system: "Motor", desc: "Mal funcionamiento sistema control ralentí (IAC)", symptoms: "Motor se acelera o se apaga solo.", causes: "Válvula IAC sucia o carbonizada.", solution: "Limpiar cuerpo de aceleración y IAC." },
+        { id: "P0507", system: "Motor", desc: "Control de ralentí RPM más altas de lo esperado", symptoms: "RPM altas en semáforos.", causes: "Fuga de vacío grande, IAC pegada abierta.", solution: "Buscar fugas de aire en admisión." },
+        { id: "P0520", system: "Motor", desc: "Circuito sensor presión aceite motor", symptoms: "Luz de aceite encendida o manómetro a 0.", causes: "Sensor de presión dañado.", solution: "Verificar presión real y cambiar sensor." },
+        { id: "P0521", system: "Motor", desc: "Rango/Desempeño sensor presión aceite", symptoms: "Lectura de presión de aceite oscilante.", causes: "Aceite incorrecto, filtro sucio o sensor.", solution: "Cambio de aceite y filtro." },
+        { id: "P0562", system: "Carga", desc: "Voltaje del sistema bajo", symptoms: "Luces tenues, radio se apaga, ABS inactivo.", causes: "Alternador no carga, batería muerta.", solution: "Revisar sistema de carga y alternador." },
+        { id: "P0601", system: "ECU", desc: "Error suma comprobación memoria interna (Checksum)", symptoms: "Vehículo no arranca o se apaga.", causes: "Falla interna de la ECU.", solution: "Reprogramar o cambiar ECU." },
+        { id: "P0606", system: "ECU", desc: "Fallo procesador PCM/ECM", symptoms: "Fallo catastrófico del sistema.", causes: "Daño interno computadora.", solution: "Reemplazar PCM." },
+        { id: "P0700", system: "Transmisión", desc: "Sistema de control de transmisión (MIL Request)", symptoms: "Caja en modo emergencia (solo 2da o 3ra marcha).", causes: "Error almacenado en TCM.", solution: "Escanear módulo de transmisión." },
+        { id: "P0705", system: "Transmisión", desc: "Circuito sensor rango transmisión (TR/PRNDL)", symptoms: "No arranca en Park/Neutral, luces marcha atrás fallan.", causes: "Sensor de rango sucio/desajustado.", solution: "Ajustar o cambiar sensor de rango." },
+        { id: "P0720", system: "Transmisión", desc: "Circuito sensor velocidad salida (OSS)", symptoms: "Velocímetro falla, cambios bruscos.", causes: "Sensor OSS dañado.", solution: "Cambiar sensor de velocidad salida." },
+        { id: "P0730", system: "Transmisión", desc: "Relación de marcha incorrecta", symptoms: "La caja patina o no entra el cambio.", causes: "Deslizamiento interno, bajo nivel aceite.", solution: "Revisar nivel ATF y condición." },
+        { id: "P0741", system: "Transmisión", desc: "Embrague convertidor par - Desempeño/Atascado", symptoms: "Consumo alto en carretera, sobrecalentamiento caja.", causes: "Solenoide TCC o convertidor dañado.", solution: "Revisar solenoide TCC." },
+        { id: "P1101", system: "Motor", desc: "Rango/Desempeño sistema admisión aire (MAF/MAP)", symptoms: "Mensaje 'Potencia motor reducida'.", causes: "Mariposa sucia, filtro aire sucio.", solution: "Limpieza cuerpo aceleración (Común en GM)." },
+        { id: "P1800", system: "Motor", desc: "Solenoide control válvula admisión variable (VIAS)", symptoms: "Falta de potencia en altas RPM.", causes: "Solenoide VIAS dañado (Nissan).", solution: "Reemplazar solenoide VIAS." },
+        
+        // B-CODES (BODY)
+        { id: "B0001", system: "Carrocería", desc: "Circuito detonador conductor (Etapa 1)", symptoms: "Luz Airbag encendida, claxon no funciona.", causes: "Resorte reloj (Clockspring) roto.", solution: "Revisar cinta del volante." },
+        { id: "B1000", system: "Carrocería", desc: "Falla interna unidad de control (ECU)", symptoms: "Sistemas aleatorios muertos.", causes: "Módulo dañado.", solution: "Reemplazar módulo." },
+        { id: "B1325", system: "Carrocería", desc: "Voltaje del sistema bajo", symptoms: "Ventanas lentas, luces parpadean.", causes: "Batería descargada.", solution: "Cargar batería y probar." },
+        { id: "B1424", system: "Carrocería", desc: "Motor actuador mezcla aire en corto", symptoms: "Sale aire caliente cuando pides frío (o viceversa).", causes: "Actuador A/C trabado.", solution: "Revisar actuador de mezcla." },
+        { id: "B2500", system: "Carrocería", desc: "Falla lámpara indicador advertencia", symptoms: "Luz de advertencia no enciende al dar contacto.", causes: "Bombilla tablero fundida.", solution: "Revisar cuadro de instrumentos." },
+
+        // C-CODES (CHASIS)
+        { id: "C0035", system: "Chasis", desc: "Sensor velocidad rueda del. izq.", symptoms: "Luz ABS encendida, frenado errático.", causes: "Sensor ABS sucio/roto.", solution: "Limpiar/Cambiar sensor ABS." },
+        { id: "C0040", system: "Chasis", desc: "Sensor velocidad rueda del. der.", symptoms: "Luz ABS encendida.", causes: "Sensor ABS sucio/roto.", solution: "Limpiar/Cambiar sensor ABS." },
+        { id: "C1101", system: "Chasis", desc: "Falla circuito sensor hidráulico ABS", symptoms: "Control de tracción desactivado.", causes: "Sensor presión freno interno módulo.", solution: "Revisar módulo ABS." },
+        { id: "C1201", system: "Chasis", desc: "Falla circuito inyector ABS", symptoms: "Pedal de freno vibra o duro.", causes: "Válvula interna módulo ABS.", solution: "Reemplazar unidad hidráulica." },
+
+        // U-CODES (RED)
+        { id: "U0001", system: "Red", desc: "Bus comunicación CAN Alta Velocidad", symptoms: "Múltiples luces de advertencia, auto no arranca.", causes: "Corto en cables CAN H/L.", solution: "Revisar impedancia red (60 ohm)." },
+        { id: "U0073", system: "Red", desc: "Bus comunicación módulo control apagado", symptoms: "Tablero muerto, sin comunicación con escáner.", causes: "Red caída, módulo en corto.", solution: "Desconectar módulos uno a uno." },
+        { id: "U0100", system: "Red", desc: "Pérdida comunicación con ECM/PCM", symptoms: "El motor se apaga y no vuelve a encender.", causes: "ECU sin energía o desconectada.", solution: "Revisar fusibles ECU." },
+        { id: "U0101", system: "Red", desc: "Pérdida comunicación con TCM", symptoms: "Golpes fuertes en la transmisión.", causes: "Fallo módulo transmisión.", solution: "Revisar conector TCM." },
+        { id: "U0121", system: "Red", desc: "Pérdida comunicación con ABS", symptoms: "Luces ABS y Freno encendidas.", causes: "Módulo ABS sin energía.", solution: "Revisar fusibles ABS." },
+        { id: "U1000", system: "Red", desc: "Fallo comunicación clase 2 (Tierra)", symptoms: "Fallos eléctricos aleatorios.", causes: "Tierras sulfatadas (Nissan/GM).", solution: "Limpiar puntos de masa del chasis." }
+    ];
+
+    const sensorGuideData = [
+        {
+            name: "Sensor MAF (Flujo de Aire)",
+            icon: <Wind className="text-blue-400" size={32} />,
+            role: "Mide la cantidad exacta de aire que entra al motor para calcular la inyección.",
+            location: "En el tubo de admisión, justo después del filtro de aire.",
+            normal: "Ralentí: 0.6V - 1.0V (o aprox. 1g/s por litro de motor). Al acelerar: Sube rápido.",
+            fail: "Jaloneos, humo negro, falta de potencia. Códigos P0101, P0102."
+        },
+        {
+            name: "Sensor O2 (Oxígeno - Banco 1 Sen 1)",
+            icon: <Activity className="text-emerald-400" size={32} />,
+            role: "Mide cuánto oxígeno sobró en el escape para ajustar la mezcla (Rica/Pobre).",
+            location: "En el tubo de escape, antes del convertidor catalítico.",
+            normal: "Oscila entre 0.1V (Pobre) y 0.9V (Rica) constantemente.",
+            fail: "Consumo alto, humo, olor a huevo podrido. Códigos P0130-P0135."
+        },
+        {
+            name: "Sensor MAP (Presión Absoluta)",
+            icon: <Gauge className="text-purple-400" size={32} />,
+            role: "Mide el vacío o presión dentro del múltiple de admisión (Carga del motor).",
+            location: "Atornillado al múltiple de admisión.",
+            normal: "Switch ON: ~4.5V (Atmosférica). Ralentí: ~1.0V - 1.5V (Vacío).",
+            fail: "Motor se apaga, consumo excesivo. Códigos P0106-P0108."
+        },
+        {
+            name: "Sensor ECT (Temperatura Refrigerante)",
+            icon: <Thermometer className="text-rose-400" size={32} />,
+            role: "Informa la temperatura del motor para activar ventiladores y arranque en frío.",
+            location: "Cerca del termostato o culata.",
+            normal: "Frío: Alta resistencia (3V+). Caliente (90°C): ~0.5V.",
+            fail: "Ventiladores no prenden, dificultad arranque en frío. P0115."
+        },
+        {
+            name: "Sensor CKP (Cigüeñal)",
+            icon: <Zap className="text-amber-400" size={32} />,
+            role: "Indica giro del motor y momento de chispa. Es el sensor principal.",
+            location: "Polea del cigüeñal o bloque motor.",
+            normal: "Señal cuadrada o senoidal constante al dar marcha.",
+            fail: "Motor gira pero no arranca (No start). Se apaga caliente. P0335."
+        },
+        {
+            name: "Válvula EGR (Recirculación Gases)",
+            icon: <Flame className="text-orange-500" size={32} />,
+            role: "Introduce gases de escape a la admisión para bajar temperatura y NOx.",
+            location: "Conectada entre escape y admisión.",
+            normal: "Cerrada en ralentí. Abre en velocidad crucero.",
+            fail: "Ralentí inestable, se apaga al frenar. P0401."
+        },
+        {
+            name: "Presión de Riel (FRP - Diesel/GDI)",
+            icon: <Droplet className="text-cyan-400" size={32} />,
+            role: "Mide la altísima presión de combustible en inyección directa.",
+            location: "En el riel de inyectores.",
+            normal: "Ralentí: ~300-400 bar (Diesel). ~30-50 bar (Gasolina GDI).",
+            fail: "No arranca, modo seguridad, humo. P0087, P0191."
+        }
+    ];
+
+    const getSystemInfo = (char) => {
+        switch(char.toUpperCase()) {
+            case 'P': return { name: "Motor/Caja (P)", icon: <Zap size={16} />, color: "text-orange-400 bg-orange-400/10 border-orange-400/20" };
+            case 'B': return { name: "Carrocería (B)", icon: <Shield size={16} />, color: "text-blue-400 bg-blue-400/10 border-blue-400/20" };
+            case 'C': return { name: "Chasis (C)", icon: <Activity size={16} />, color: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20" };
+            case 'U': return { name: "Red (U)", icon: <Radio size={16} />, color: "text-purple-400 bg-purple-400/10 border-purple-400/20" };
+            default: return { name: "Desconocido", icon: <AlertTriangle size={16} />, color: "text-slate-400 bg-slate-400/10 border-slate-400/20" };
+        }
+    };
+
+    const decodeGeneric = (code) => {
+        if (code.length !== 5) return null;
+        const letter = code[0].toUpperCase();
+        const type = code[1];
+        const system = code[2];
+        let explanation = "";
+        let details = "";
+        
+        if (letter === 'P') {
+            if (type === '0') explanation += "Código Genérico (Universal). ";
+            if (type === '1') explanation += "Código Específico Fabricante. ";
+            switch(system) {
+                case '0': details = "Medición Aire/Combustible o Auxiliar."; break;
+                case '1': details = "Medición Aire/Combustible."; break;
+                case '2': details = "Inyección (Combustible/Aire)."; break;
+                case '3': details = "Encendido o Misfire."; break;
+                case '4': details = "Emisiones (EGR, EVAP, Cat)."; break;
+                case '5': details = "Velocidad y Ralentí."; break;
+                case '6': details = "Computadora y Salidas."; break;
+                case '7': case '8': case '9': details = "Transmisión."; break;
+                default: details = "Subsistema reservado.";
+            }
+        } else if (letter === 'U') {
+            explanation += "Código de Red. ";
+            details = "Fallo comunicación entre computadoras.";
+        } else if (letter === 'B') {
+            explanation += "Código de Carrocería. ";
+            details = "Fallo en confort, seguridad o interior.";
+        } else if (letter === 'C') {
+            explanation += "Código de Chasis. ";
+            details = "Fallo en frenos, dirección o suspensión.";
+        }
+        return { explanation, details };
+    };
+
+    const filteredCodes = useMemo(() => {
+        const results = codeDatabase.filter(code => {
+            const matchesSearch = code.id.includes(searchTerm) || 
+                                code.desc.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                code.causes.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesFilter = filter === "ALL" || code.id.startsWith(filter);
+            return matchesSearch && matchesFilter;
+        });
+        return results; 
+    }, [searchTerm, filter, codeDatabase]);
+
+    const showDecoder = searchTerm.length === 5 && filteredCodes.length === 0;
+    const decoderResult = useMemo(() => showDecoder ? decodeGeneric(searchTerm) : null, [searchTerm, showDecoder]);
+    const displayLimit = 60;
+    const displayedCodes = filteredCodes.slice(0, displayLimit);
+
+    return (
+        <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-indigo-500 selection:text-white flex flex-col relative overflow-x-hidden">
+            {/* Background Gradient Mesh */}
+            <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-900/10 rounded-full blur-[120px]" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-900/10 rounded-full blur-[120px]" />
+            </div>
+
+            {/* Header */}
+            <header className="fixed top-0 w-full z-50 bg-slate-900/80 backdrop-blur-md border-b border-slate-800/60 transition-all duration-300">
+                <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="bg-gradient-to-br from-blue-600 to-indigo-600 p-2 rounded-xl shadow-lg shadow-blue-500/20 transform hover:scale-105 transition-transform duration-300">
+                            <Wrench className="text-white" size={22} />
+                        </div>
+                        <div>
+                            <h1 className="text-lg md:text-xl font-bold text-white tracking-wide leading-tight">OBD2 Master <span className="text-blue-400">Pro</span></h1>
+                            <p className="text-[10px] md:text-xs text-slate-400 font-medium tracking-wider uppercase">Diagnóstico Profesional</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center bg-slate-800/80 rounded-full p-1 border border-slate-700/50">
+                        <button 
+                            onClick={() => setCurrentView('codes')}
+                            className={`px-4 py-1.5 rounded-full text-xs md:text-sm font-semibold transition-all duration-300 ${currentView === 'codes' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-slate-700/50'}`}
+                        >
+                            Códigos
+                        </button>
+                        <button 
+                            onClick={() => setCurrentView('guide')}
+                            className={`px-4 py-1.5 rounded-full text-xs md:text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${currentView === 'guide' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-slate-700/50'}`}
+                        >
+                            <BookOpen size={14} className={currentView === 'guide' ? 'animate-pulse' : ''}/> <span className="hidden md:inline">Guía Técnica</span><span className="md:hidden">Guía</span>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <main className="relative z-10 max-w-7xl mx-auto px-4 pt-28 pb-12 flex-grow w-full">
+                {currentView === 'codes' && (
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        {/* Hero Section */}
+                        <div className="text-center mb-10">
+                            <h2 className="text-4xl md:text-5xl font-black text-white mb-4 tracking-tight drop-shadow-xl">
+                                Diagnostica tu <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">Auto</span>
+                            </h2>
+                            <p className="text-slate-400 text-base md:text-lg max-w-2xl mx-auto leading-relaxed font-light">
+                                Traduce el lenguaje de tu vehículo. Identifica fallas, entiende los síntomas y encuentra la solución exacta.
+                            </p>
+                        </div>
+
+                        {/* Search Bar */}
+                        <div className="relative max-w-2xl mx-auto mb-8 group">
+                            <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+                                <Search className="text-slate-500 group-focus-within:text-blue-400 transition-colors" size={24} />
+                            </div>
+                            <input
+                                type="text"
+                                className="block w-full pl-14 pr-4 py-5 border border-slate-700/50 rounded-2xl bg-slate-800/50 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-slate-800 transition-all duration-300 text-xl shadow-2xl backdrop-blur-xl font-mono uppercase tracking-wider"
+                                placeholder="EJ: P0300, U0100..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value.toUpperCase())}
+                                maxLength={5}
+                            />
+                            {searchTerm && (
+                                <button 
+                                    onClick={() => setSearchTerm("")}
+                                    className="absolute inset-y-0 right-0 pr-5 flex items-center text-slate-500 hover:text-white cursor-pointer transition-colors"
+                                >
+                                    <X size={20} />
+                                </button>
+                            )}
+                        </div>
+
+                        {/* History Pills */}
+                        {history.length > 0 && !searchTerm && (
+                            <div className="mb-8 max-w-3xl mx-auto">
+                                <div className="flex justify-between items-center mb-3 px-2">
+                                    <h3 className="text-xs font-bold text-slate-500 uppercase flex items-center gap-1.5 tracking-widest">
+                                        <History size={12} /> Recientes
+                                    </h3>
+                                    <button onClick={clearHistory} className="text-[10px] font-bold text-red-400 hover:text-red-300 hover:bg-red-400/10 px-2 py-1 rounded transition-colors uppercase tracking-wider">Borrar</button>
+                                </div>
+                                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide mask-fade-right">
+                                    {history.map((h, i) => (
+                                        <button 
+                                            key={i}
+                                            onClick={() => setSearchTerm(h.id)}
+                                            className="group flex items-center gap-2 bg-slate-800/60 border border-slate-700/50 px-3 py-2 rounded-lg text-sm hover:bg-slate-700 hover:border-blue-500/50 transition-all duration-200 flex-shrink-0 backdrop-blur-sm"
+                                        >
+                                            <span className="font-mono font-bold text-blue-400 group-hover:text-blue-300">{h.id}</span>
+                                            <span className="w-px h-3 bg-slate-700"></span>
+                                            <span className="text-slate-400 text-xs truncate max-w-[80px]">{h.system}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Filters */}
+                        <div className="mb-10 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide flex justify-start md:justify-center">
+                            <div className="flex gap-2">
+                                {[
+                                    { id: "ALL", label: "Todo", icon: Database },
+                                    { id: "P", label: "Motor", icon: Zap },
+                                    { id: "B", label: "Carrocería", icon: Shield },
+                                    { id: "C", label: "Chasis", icon: Activity },
+                                    { id: "U", label: "Red", icon: Radio }
+                                ].map(btn => (
+                                    <button
+                                        key={btn.id}
+                                        onClick={() => setFilter(btn.id)}
+                                        className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all duration-200 border ${
+                                            filter === btn.id 
+                                            ? "bg-blue-600 text-white border-blue-500 shadow-lg shadow-blue-500/25 scale-105" 
+                                            : "bg-slate-800/60 text-slate-400 border-slate-700/50 hover:bg-slate-700 hover:border-slate-600 hover:text-white backdrop-blur-sm"
+                                        }`}
+                                    >
+                                        <btn.icon size={16} /> {btn.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Results Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {displayedCodes.map(code => {
+                                const sysInfo = getSystemInfo(code.id[0]);
+                                return (
+                                    <div 
+                                        key={code.id} 
+                                        onClick={() => addToHistory(code)}
+                                        className="bg-slate-800/40 backdrop-blur-sm rounded-2xl border border-slate-700/50 p-6 shadow-lg hover:shadow-2xl hover:border-blue-500/30 hover:bg-slate-800/60 hover:-translate-y-1 transition-all duration-300 group flex flex-col h-full relative overflow-hidden"
+                                    >
+                                        {/* Top Decoration Line */}
+                                        <div className={`absolute top-0 left-0 w-full h-1 ${sysInfo.color.split(' ')[1].replace('bg-', 'bg-').replace('/10', '')}`}></div>
+
+                                        <div className="flex justify-between items-start mb-5 relative z-10">
+                                            <div>
+                                                <h2 className="text-4xl font-black text-white tracking-tighter group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-400 group-hover:to-indigo-400 transition-all duration-300">{code.id}</h2>
+                                                <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold border mt-2 ${sysInfo.color}`}>
+                                                    {sysInfo.icon}
+                                                    {sysInfo.name.split(' ')[0]}
+                                                </div>
+                                            </div>
+                                            <button 
+                                                onClick={(e) => { e.stopPropagation(); handleShare(code); }}
+                                                className="p-2 rounded-xl bg-slate-700/50 text-slate-400 hover:bg-blue-600 hover:text-white transition-colors"
+                                                title="Compartir"
+                                            >
+                                                <Share2 size={18} />
+                                            </button>
+                                        </div>
+                                        
+                                        <div className="mb-6 flex-grow relative z-10">
+                                            <h3 className="text-[10px] uppercase tracking-widest font-bold text-slate-500 mb-2">Significado</h3>
+                                            <p className="text-slate-200 text-lg leading-snug font-medium">{code.desc}</p>
+                                        </div>
+                                        
+                                        <div className="space-y-3 mt-auto relative z-10">
+                                            {/* Symptoms Card */}
+                                            <div className="bg-slate-900/40 p-3 rounded-lg border border-slate-700/30 group-hover:border-orange-500/20 transition-colors">
+                                                <h4 className="text-[10px] text-orange-400 uppercase font-black mb-1.5 flex items-center gap-1.5">
+                                                    <AlertCircle size={12} /> Síntomas
+                                                </h4>
+                                                <p className="text-sm text-slate-400 leading-normal italic">"{code.symptoms}"</p>
+                                            </div>
+
+                                            {/* Causes */}
+                                            <div className="flex gap-3">
+                                                <div className="flex-1 bg-slate-900/40 p-3 rounded-lg border border-slate-700/30 group-hover:border-red-500/20 transition-colors">
+                                                    <h4 className="text-[10px] text-red-400 uppercase font-black mb-1.5 flex items-center gap-1.5">
+                                                        <AlertTriangle size={12} /> Causa
+                                                    </h4>
+                                                    <p className="text-xs text-slate-400 leading-normal line-clamp-3">{code.causes}</p>
+                                                </div>
+                                                {/* Solution */}
+                                                <div className="flex-1 bg-slate-900/40 p-3 rounded-lg border border-slate-700/30 group-hover:border-green-500/20 transition-colors">
+                                                    <h4 className="text-[10px] text-green-400 uppercase font-black mb-1.5 flex items-center gap-1.5">
+                                                        <Wrench size={12} /> Solución
+                                                    </h4>
+                                                    <p className="text-xs text-slate-400 leading-normal line-clamp-3">{code.solution}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* Smart Decoder fallback */}
+                        {showDecoder && decoderResult && (
+                            <div className="max-w-2xl mx-auto mt-12 animate-in fade-in zoom-in-95 duration-500">
+                                <div className="p-[1px] bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-2xl shadow-2xl">
+                                    <div className="bg-slate-900 rounded-2xl p-8 relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
+                                        
+                                        <div className="flex items-center gap-4 mb-8 relative z-10">
+                                            <div className="bg-slate-800 p-3 rounded-xl border border-slate-700">
+                                                <Database size={28} className="text-blue-400"/>
+                                            </div>
+                                            <div>
+                                                <h3 className="text-xl font-bold text-white">Análisis Inteligente</h3>
+                                                <p className="text-slate-400 text-sm">Este código no está en la base de datos, pero lo hemos decodificado:</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="space-y-4 relative z-10">
+                                            <div className="flex items-center gap-6 p-5 bg-slate-800/50 rounded-xl border border-slate-700/50 backdrop-blur-sm">
+                                                <div className="flex flex-col items-center min-w-[60px]">
+                                                    <span className="text-4xl font-black text-white">{searchTerm[0]}</span>
+                                                    <span className="text-[9px] uppercase text-slate-500 font-bold tracking-widest mt-1">Sistema</span>
+                                                </div>
+                                                <div className="h-10 w-px bg-slate-700"></div>
+                                                <div className={`font-bold text-lg ${getSystemInfo(searchTerm[0]).color.split(' ')[0]}`}>{getSystemInfo(searchTerm[0]).name}</div>
+                                            </div>
+                                            <div className="p-5 bg-blue-500/10 rounded-xl border border-blue-500/20">
+                                                <h4 className="text-blue-400 text-xs font-bold uppercase mb-2 tracking-wider flex items-center gap-2">
+                                                    <Info size={14}/> Interpretación
+                                                </h4>
+                                                <p className="text-slate-200 italic text-lg font-medium leading-relaxed">"{decoderResult.explanation} {decoderResult.details}"</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        
+                        {/* Loading / Empty States */}
+                        {!showDecoder && filteredCodes.length === 0 && searchTerm.length > 0 && searchTerm.length < 5 && (
+                            <div className="text-center py-20 animate-pulse">
+                                <div className="inline-block p-4 rounded-full bg-slate-800/50 mb-4">
+                                    <Activity className="h-10 w-10 text-slate-500" />
+                                </div>
+                                <h3 className="text-xl font-bold text-white mb-2">Buscando...</h3>
+                                <p className="text-slate-500">Escribe el código completo</p>
+                            </div>
+                        )}
+                         
+                        {filteredCodes.length === 0 && searchTerm.length === 0 && (
+                            <div className="text-center py-24 border-2 border-dashed border-slate-800 rounded-3xl bg-slate-900/20">
+                                <div className="inline-block p-6 rounded-full bg-slate-800 mb-6">
+                                    <Database className="h-12 w-12 text-slate-600" />
+                                </div>
+                                <p className="text-slate-400 text-xl font-medium mb-2">No hay códigos en esta categoría.</p>
+                                <p className="text-slate-600 text-sm mb-6">Intenta seleccionar otro filtro</p>
+                                <button onClick={() => setFilter("ALL")} className="px-6 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-medium transition-colors border border-slate-700">
+                                    Ver todos los códigos
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* --- SENSOR GUIDE VIEW --- */}
+                {currentView === 'guide' && (
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 relative">
+                        {/* Toggle Button */}
+                        <div className="flex justify-end mb-6 sticky top-24 z-30 pointer-events-none">
+                             <button 
+                                onClick={() => setShowPortGuide(!showPortGuide)}
+                                className="pointer-events-auto flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-lg shadow-indigo-500/20 text-sm font-bold transition-all transform hover:scale-105 active:scale-95"
+                             >
+                                <MapPin size={18} /> ¿Dónde conecto el escáner?
+                             </button>
+                        </div>
+
+                         {/* PORT LOCATION GUIDE (Modal-ish) */}
+                        {showPortGuide && (
+                            <div className="mb-10 bg-slate-800/90 backdrop-blur-xl rounded-2xl border border-indigo-500/30 p-6 md:p-8 shadow-2xl animate-in zoom-in-95 duration-300 relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-[80px] pointer-events-none"></div>
+                                <div className="flex justify-between items-start mb-6 relative z-10">
+                                    <div>
+                                        <h3 className="text-2xl font-bold text-white flex items-center gap-2">
+                                            <Smartphone size={24} className="text-indigo-400"/> Ubicación del Puerto OBD2
+                                        </h3>
+                                        <p className="text-slate-400 text-sm mt-1">Busca el conector trapezoidal de 16 pines.</p>
+                                    </div>
+                                    <button onClick={() => setShowPortGuide(false)} className="p-2 bg-slate-700/50 hover:bg-slate-700 rounded-lg text-slate-400 hover:text-white transition-colors"><X size={20}/></button>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+                                    <div className="space-y-4 text-sm text-slate-300">
+                                        <p className="leading-relaxed">La ubicación varía por fabricante, pero siempre está a <strong className="text-white">menos de 1 metro</strong> del conductor.</p>
+                                        <ul className="space-y-3">
+                                            <li className="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg border border-slate-700/50">
+                                                <span className="bg-indigo-500/20 text-indigo-400 font-bold px-2 rounded">A</span>
+                                                <span><strong>Columna de Dirección:</strong> Justo debajo del volante. Es el lugar más común.</span>
+                                            </li>
+                                            <li className="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg border border-slate-700/50">
+                                                <span className="bg-indigo-500/20 text-indigo-400 font-bold px-2 rounded">B</span>
+                                                <span><strong>Pedales:</strong> Arriba del pedal de freno o embrague, a veces tras una tapa.</span>
+                                            </li>
+                                            <li className="flex items-start gap-3 p-3 bg-slate-700/30 rounded-lg border border-slate-700/50">
+                                                <span className="bg-indigo-500/20 text-indigo-400 font-bold px-2 rounded">C/D</span>
+                                                <span><strong>Consola Central:</strong> Detrás del cenicero o en el lado derecho del conductor.</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div className="bg-slate-900 rounded-xl p-6 flex items-center justify-center border border-slate-700 shadow-inner">
+                                        <svg viewBox="0 0 300 150" className="w-full h-auto text-slate-600 drop-shadow-lg">
+                                            <path d="M20,130 Q150,110 280,130" stroke="currentColor" strokeWidth="3" fill="none" strokeLinecap="round"/>
+                                            {/* Volante */}
+                                            <circle cx="150" cy="50" r="40" stroke="currentColor" strokeWidth="3" fill="transparent" />
+                                            <path d="M150,50 L150,90" stroke="currentColor" strokeWidth="3" />
+                                            <path d="M115,65 L185,65" stroke="currentColor" strokeWidth="3" />
+                                            
+                                            {/* Zonas */}
+                                            <rect x="130" y="100" width="40" height="25" rx="4" className="fill-indigo-500/20 stroke-indigo-500 animate-pulse" strokeWidth="2" />
+                                            <text x="150" y="117" textAnchor="middle" fill="#818cf8" fontSize="12" fontWeight="bold">A</text>
+                                            
+                                            <rect x="50" y="110" width="30" height="20" rx="4" className="fill-slate-800 stroke-slate-500" strokeWidth="1" />
+                                            <text x="65" y="124" textAnchor="middle" fill="currentColor" fontSize="10">B</text>
+                                            
+                                            <rect x="220" y="110" width="30" height="20" rx="4" className="fill-slate-800 stroke-slate-500" strokeWidth="1" />
+                                            <text x="235" y="124" textAnchor="middle" fill="currentColor" fontSize="10">D</text>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="text-center mb-12">
+                            <h2 className="text-3xl md:text-5xl font-black text-white mb-4 tracking-tight drop-shadow-md">Guía Técnica</h2>
+                            <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+                                Domina los componentes clave. Aprende los valores normales para probar con multímetro.
+                            </p>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            {sensorGuideData.map((sensor, idx) => (
+                                <div key={idx} className="bg-slate-800/40 backdrop-blur-sm rounded-2xl border border-slate-700/50 overflow-hidden shadow-lg hover:border-slate-600 transition-all duration-300 group hover:-translate-y-1">
+                                    <div className="p-6 md:p-8">
+                                        <div className="flex items-start justify-between mb-6">
+                                            <div className="flex items-center gap-5">
+                                                <div className="bg-slate-900 p-3.5 rounded-2xl border border-slate-700 group-hover:border-blue-500/50 group-hover:shadow-lg group-hover:shadow-blue-500/10 transition-all">
+                                                    {sensor.icon}
+                                                </div>
+                                                <h3 className="text-xl font-bold text-white leading-tight group-hover:text-blue-400 transition-colors">{sensor.name}</h3>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="space-y-5">
+                                            <div>
+                                                <h4 className="text-[10px] uppercase text-slate-500 font-bold mb-2 tracking-wider">Función</h4>
+                                                <p className="text-slate-300 text-sm leading-relaxed">{sensor.role}</p>
+                                            </div>
+
+                                            <div className="flex items-start gap-3">
+                                                <div className="mt-1 min-w-[16px]"><MapPin size={16} className="text-slate-500"/></div>
+                                                <div>
+                                                    <h4 className="text-[10px] uppercase text-slate-500 font-bold mb-1 tracking-wider">Ubicación</h4>
+                                                    <p className="text-slate-300 text-sm font-medium">{sensor.location}</p>
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-1 gap-3">
+                                                <div className="bg-emerald-500/5 rounded-lg p-4 border border-emerald-500/20">
+                                                    <h4 className="text-[10px] uppercase text-emerald-400 font-black mb-2 flex items-center gap-1.5 tracking-wider">
+                                                        <Activity size={12}/> Valores OK
+                                                    </h4>
+                                                    <p className="text-slate-200 text-sm font-mono leading-relaxed">{sensor.normal}</p>
+                                                </div>
+
+                                                <div className="bg-red-500/5 rounded-lg p-4 border border-red-500/20">
+                                                    <h4 className="text-[10px] uppercase text-red-400 font-black mb-2 flex items-center gap-1.5 tracking-wider">
+                                                        <AlertTriangle size={12}/> Falla Común
+                                                    </h4>
+                                                    <p className="text-slate-200 text-sm">{sensor.fail}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </main>
+
+            {/* Footer */}
+            <footer className="mt-auto py-10 border-t border-slate-800 bg-slate-900/80 backdrop-blur-md relative z-10">
+                <div className="max-w-7xl mx-auto px-4 text-center">
+                    <div className="mb-6 flex justify-center">
+                        <div className="h-1 w-20 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full opacity-50"></div>
+                    </div>
+                    <p className="text-slate-400 text-sm mb-4 font-medium">
+                        Herramienta profesional creada con <span className="text-red-500 animate-pulse mx-1">❤️</span> en Caracas, Venezuela
+                    </p>
+                    <a 
+                        href="https://instagram.com/lemustech.ve" 
+                        target="_blank" 
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-slate-950 border border-slate-800 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300 group"
+                    >
+                        <Instagram size={20} className="text-purple-400 group-hover:scale-110 transition-transform" />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 font-bold tracking-wide">
+                            @Lemustech.ve
+                        </span>
+                        <ChevronRight size={16} className="text-slate-600 group-hover:text-pink-400 group-hover:translate-x-1 transition-all" />
+                    </a>
+                    <p className="text-slate-600 text-xs mt-8">
+                        © {new Date().getFullYear()} OBD2 Master Pro. Uso referencial.
+                    </p>
+                </div>
+            </footer>
+        </div>
+    );
+}
