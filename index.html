@@ -2,11 +2,23 @@
 <html lang="es" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>OBD2 Ultimate by Lemustech</title>
     <meta name="description" content="Base de datos de códigos OBD2 profesional para mecánicos. Soluciones, causas y diagnósticos P, U, B, C.">
-    <!-- Favicon -->
+    
+    <!-- Favicon estándar -->
     <link rel="icon" type="image/jpeg" href="https://i.postimg.cc/52KNxN9H/generated-image-(3).jpg">
+    
+    <!-- Configuración para iPhone / iPad (iOS) -->
+    <link rel="apple-touch-icon" href="https://i.postimg.cc/52KNxN9H/generated-image-(3).jpg">
+    <link rel="apple-touch-icon" sizes="152x152" href="https://i.postimg.cc/52KNxN9H/generated-image-(3).jpg">
+    <link rel="apple-touch-icon" sizes="180x180" href="https://i.postimg.cc/52KNxN9H/generated-image-(3).jpg">
+    <link rel="apple-touch-icon" sizes="167x167" href="https://i.postimg.cc/52KNxN9H/generated-image-(3).jpg">
+    
+    <!-- Modo Web App (Pantalla completa sin barra de navegador) -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="OBD2 Ultimate">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -39,14 +51,14 @@
         :root {
             --bg-body: #f1f5f9;
             --text-main: #0f172a;
-            --card-bg: rgba(255, 255, 255, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
             --card-border: rgba(0, 0, 0, 0.1);
         }
 
         .dark {
             --bg-body: #0f172a;
             --text-main: #e2e8f0;
-            --card-bg: rgba(30, 41, 59, 0.7);
+            --card-bg: rgba(30, 41, 59, 0.75);
             --card-border: rgba(255, 255, 255, 0.08);
         }
 
@@ -59,6 +71,8 @@
                 radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.05) 0%, transparent 25%);
             background-attachment: fixed;
             min-height: 100vh;
+            /* Evitar rebote en iOS al hacer scroll */
+            overscroll-behavior-y: none;
         }
         
         .glass-panel {
@@ -145,47 +159,47 @@
 <body class="flex flex-col font-sans selection:bg-blue-500/30">
 
     <!-- Header -->
-    <header class="bg-white/80 dark:bg-slate-900/90 backdrop-blur-xl border-b border-gray-200 dark:border-slate-700/50 sticky top-0 z-50 shadow-lg print:hidden">
+    <header class="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-b border-gray-200 dark:border-slate-700/50 sticky top-0 z-50 shadow-sm print:hidden">
         <div class="container mx-auto px-4 py-3">
             <div class="flex flex-col lg:flex-row justify-between items-center gap-4">
                 
                 <!-- Logo & Title -->
-                <div class="flex items-center gap-4 group cursor-pointer" onclick="window.location.reload()">
+                <div class="flex items-center gap-4 group cursor-pointer w-full lg:w-auto justify-center lg:justify-start" onclick="window.location.reload()">
                     <div class="relative">
                         <div class="absolute inset-0 bg-blue-500 rounded-xl blur opacity-20 group-hover:opacity-40 transition-opacity"></div>
                         <!-- LOGO REEMPLAZADO -->
-                        <img src="https://i.postimg.cc/52KNxN9H/generated-image-(3).jpg" alt="Lemustech Logo" class="w-12 h-12 rounded-xl relative border border-gray-200 dark:border-slate-700 shadow-sm object-cover">
+                        <img src="https://i.postimg.cc/52KNxN9H/generated-image-(3).jpg" alt="Lemustech Logo" class="w-10 h-10 md:w-12 md:h-12 rounded-xl relative border border-gray-200 dark:border-slate-700 shadow-sm object-cover">
                     </div>
                     <div>
-                        <h1 class="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">OBD2 <span class="text-blue-600 dark:text-blue-400">Ultimate</span></h1>
-                        <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold tracking-widest uppercase">by Lemustech</p>
+                        <h1 class="text-xl md:text-2xl font-bold text-slate-800 dark:text-white tracking-tight">OBD2 <span class="text-blue-600 dark:text-blue-400">Ultimate</span></h1>
+                        <p class="text-[9px] md:text-[10px] text-slate-500 dark:text-slate-400 font-bold tracking-widest uppercase">by Lemustech</p>
                     </div>
                 </div>
                 
                 <!-- Search & Actions -->
-                <div class="flex items-center gap-3 w-full lg:w-auto">
+                <div class="flex items-center gap-2 w-full lg:w-auto">
                     <!-- Search Bar -->
                     <div class="relative flex-grow lg:w-[400px] group">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <i class="fa-solid fa-magnifying-glass text-slate-400 group-focus-within:text-blue-500 transition-colors"></i>
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-magnifying-glass text-slate-400 group-focus-within:text-blue-500 transition-colors text-sm"></i>
                         </div>
-                        <input type="text" id="searchInput" placeholder="Buscar código (P0300), síntoma..." 
-                            class="block w-full pl-11 pr-12 py-2.5 bg-gray-100 dark:bg-slate-950/50 border border-gray-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-medium text-sm">
-                        <button id="clearSearch" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-red-500 hidden cursor-pointer">
+                        <input type="text" id="searchInput" placeholder="Código (P0300) o síntoma..." 
+                            class="block w-full pl-9 pr-8 py-2 md:py-2.5 bg-gray-100 dark:bg-slate-950/50 border border-gray-200 dark:border-slate-700 rounded-lg md:rounded-xl text-slate-800 dark:text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-medium text-sm">
+                        <button id="clearSearch" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-red-500 hidden cursor-pointer">
                             <i class="fa-solid fa-xmark"></i>
                         </button>
                     </div>
 
                     <!-- Toolbar -->
-                    <div class="flex items-center gap-2 border-l border-gray-300 dark:border-slate-700 pl-3">
-                        <button onclick="toggleTheme()" class="p-2.5 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors" title="Cambiar Tema">
+                    <div class="flex items-center gap-1 md:gap-2 border-l border-gray-300 dark:border-slate-700 pl-2">
+                        <button onclick="toggleTheme()" class="p-2 md:p-2.5 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors" title="Cambiar Tema">
                             <i class="fa-solid fa-sun hidden dark:block"></i>
                             <i class="fa-solid fa-moon dark:hidden"></i>
                         </button>
-                        <button onclick="toggleView()" class="p-2.5 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors" title="Cambiar Vista">
+                        <button onclick="toggleView()" class="p-2 md:p-2.5 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors hidden md:block" title="Cambiar Vista">
                             <i class="fa-solid fa-list" id="viewIcon"></i>
                         </button>
-                        <button onclick="toggleHistory()" class="p-2.5 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-800 text-blue-600 dark:text-blue-400 transition-colors relative" title="Historial Reciente">
+                        <button onclick="toggleHistory()" class="p-2 md:p-2.5 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-800 text-blue-600 dark:text-blue-400 transition-colors relative" title="Historial Reciente">
                             <i class="fa-solid fa-clock-rotate-left"></i>
                             <span id="historyBadge" class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full hidden"></span>
                         </button>
@@ -209,29 +223,29 @@
     </div>
 
     <!-- Main Content -->
-    <main class="flex-grow container mx-auto px-4 py-8">
+    <main class="flex-grow container mx-auto px-4 py-6 md:py-8">
         
         <!-- Filters Bar -->
-        <div class="filters-bar flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8">
-            <div class="flex flex-wrap gap-2" id="filterContainer">
-                <button class="category-btn active px-4 py-2 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm font-bold uppercase tracking-wide flex items-center gap-2 shadow-sm" data-filter="all">
+        <div class="filters-bar flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 md:gap-6 mb-6 md:mb-8">
+            <div class="flex flex-wrap gap-2 w-full justify-center lg:justify-start" id="filterContainer">
+                <button class="category-btn active px-3 py-1.5 md:px-4 md:py-2 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs md:text-sm font-bold uppercase tracking-wide flex items-center gap-1.5 md:gap-2 shadow-sm" data-filter="all">
                     Todos
                 </button>
-                <button class="category-btn px-4 py-2 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm font-bold uppercase tracking-wide flex items-center gap-2 shadow-sm group" data-filter="P">
+                <button class="category-btn px-3 py-1.5 md:px-4 md:py-2 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs md:text-sm font-bold uppercase tracking-wide flex items-center gap-1.5 md:gap-2 shadow-sm group" data-filter="P">
                     <i class="fa-solid fa-gauge-high text-orange-500 dark:text-orange-400"></i> Motor
                 </button>
-                <button class="category-btn px-4 py-2 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm font-bold uppercase tracking-wide flex items-center gap-2 shadow-sm group" data-filter="B">
-                    <i class="fa-solid fa-shield-halved text-green-600 dark:text-green-400"></i> Carrocería
+                <button class="category-btn px-3 py-1.5 md:px-4 md:py-2 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs md:text-sm font-bold uppercase tracking-wide flex items-center gap-1.5 md:gap-2 shadow-sm group" data-filter="B">
+                    <i class="fa-solid fa-shield-halved text-green-600 dark:text-green-400"></i> Body
                 </button>
-                <button class="category-btn px-4 py-2 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm font-bold uppercase tracking-wide flex items-center gap-2 shadow-sm group" data-filter="C">
+                <button class="category-btn px-3 py-1.5 md:px-4 md:py-2 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs md:text-sm font-bold uppercase tracking-wide flex items-center gap-1.5 md:gap-2 shadow-sm group" data-filter="C">
                     <i class="fa-solid fa-circle-notch text-purple-600 dark:text-purple-400"></i> Chasis
                 </button>
-                <button class="category-btn px-4 py-2 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm font-bold uppercase tracking-wide flex items-center gap-2 shadow-sm group" data-filter="U">
+                <button class="category-btn px-3 py-1.5 md:px-4 md:py-2 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs md:text-sm font-bold uppercase tracking-wide flex items-center gap-1.5 md:gap-2 shadow-sm group" data-filter="U">
                     <i class="fa-solid fa-network-wired text-yellow-600 dark:text-yellow-400"></i> Red
                 </button>
             </div>
             
-            <div class="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400 font-mono">
+            <div class="flex items-center justify-end w-full lg:w-auto gap-4 text-xs md:text-sm text-slate-500 dark:text-slate-400 font-mono">
                 <span>Resultados: <strong class="text-slate-800 dark:text-white" id="visibleCount">0</strong></span>
                 <span class="h-4 w-[1px] bg-slate-300 dark:bg-slate-700"></span>
                 <span>Total DB: <strong class="text-blue-600 dark:text-blue-400" id="totalCount">0</strong></span>
@@ -239,18 +253,18 @@
         </div>
 
         <!-- Grid Container -->
-        <div id="resultsContainer" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pb-12 transition-all">
+        <div id="resultsContainer" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 pb-12 transition-all">
             <!-- Content injected via JS -->
         </div>
         
         <!-- Empty State -->
-        <div id="noResults" class="hidden flex flex-col items-center justify-center py-24 text-center">
-            <div class="w-20 h-20 bg-gray-200 dark:bg-slate-800 rounded-full flex items-center justify-center mb-6 text-slate-500">
-                <i class="fa-solid fa-magnifying-glass-minus text-3xl"></i>
+        <div id="noResults" class="hidden flex flex-col items-center justify-center py-16 md:py-24 text-center">
+            <div class="w-16 h-16 md:w-20 md:h-20 bg-gray-200 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4 md:mb-6 text-slate-500">
+                <i class="fa-solid fa-magnifying-glass-minus text-2xl md:text-3xl"></i>
             </div>
-            <h3 class="text-xl font-bold text-slate-800 dark:text-white mb-2">Sin coincidencias</h3>
+            <h3 class="text-lg md:text-xl font-bold text-slate-800 dark:text-white mb-2">Sin coincidencias</h3>
             <p class="text-slate-500 text-sm max-w-md mx-auto mb-6">Intenta buscar solo el número (ej. "0300") o usa palabras clave generales.</p>
-            <button onclick="resetSearch()" class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-colors shadow-lg shadow-blue-500/20">
+            <button onclick="resetSearch()" class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-colors shadow-lg shadow-blue-500/20 text-sm md:text-base">
                 Restablecer Filtros
             </button>
         </div>
@@ -281,40 +295,40 @@
         // --- MOTOR DE CONOCIMIENTO TÉCNICO (KNOWLEDGE BASE) ---
         const knowledgeBase = {
             'P00': { 
-                sys: 'Combustible y Aire (Aux)', symptoms: ['Check Engine', 'Pérdida potencia'],
+                sys: 'Combustible y Aire (Aux)', symptoms: ['Check Engine encendido', 'Pérdida de potencia', 'Arranque difícil'],
                 causes: ['Sensor defectuoso', 'Cableado abierto', 'Conector sucio'], solutions: ['Revisar conector', 'Medir resistencia', 'Cambiar sensor'] 
             },
             'P01': { 
-                sys: 'Medición Combustible/Aire', symptoms: ['Humo negro', 'Consumo alto', 'Ralentí mal'],
-                causes: ['Fugas vacío', 'MAF sucio', 'Sensor O2 mal'], solutions: ['Limpiar MAF', 'Buscar fugas', 'Cambiar O2']
+                sys: 'Medición Combustible/Aire', symptoms: ['Humo negro en escape', 'Consumo alto', 'Ralentí inestable', 'Jaloneos al acelerar'],
+                causes: ['Fugas de vacío', 'Sensor MAF sucio', 'Sensor O2 dañado'], solutions: ['Limpiar MAF', 'Buscar fugas admisión', 'Cambiar sensor O2']
             },
             'P02': { 
-                sys: 'Sistema Inyección', symptoms: ['Tiembla motor', 'Olor gasolina', 'Humo'],
-                causes: ['Inyector sucio', 'Bomba inyección', 'Cableado'], solutions: ['Limpiar inyectores', 'Balance de cilindros']
+                sys: 'Sistema Inyección', symptoms: ['Motor tiembla', 'Olor a gasolina', 'Humo visible', 'Golpeteo motor'],
+                causes: ['Inyector obstruido', 'Bomba inyección', 'Cableado dañado'], solutions: ['Limpieza inyectores', 'Balance de cilindros', 'Revisar arnés']
             },
             'P03': { 
-                sys: 'Sistema Encendido', symptoms: ['Misfire fuerte', 'Check Engine parpadea'],
-                causes: ['Bujías viejas', 'Bobina quemada', 'Compresión baja'], solutions: ['Cambiar bujías', 'Probar bobinas', 'Test compresión']
+                sys: 'Sistema Encendido', symptoms: ['Misfire fuerte', 'Check Engine parpadea', 'Pérdida potencia', 'Olor a combustible'],
+                causes: ['Bujías desgastadas', 'Bobina quemada', 'Compresión baja'], solutions: ['Cambiar bujías', 'Probar bobinas', 'Prueba compresión']
             },
             'P04': { 
-                sys: 'Emisiones (EVAP/EGR)', symptoms: ['Olor huevo podrido', 'Fallo ITV'],
-                causes: ['Catalizador mal', 'Tapón gasolina flojo', 'EGR sucia'], solutions: ['Revisar tapón', 'Limpiar EGR', 'Verificar fugas']
+                sys: 'Emisiones (EVAP/EGR)', symptoms: ['Olor a huevo podrido', 'Fallo verificación', 'Aumento consumo'],
+                causes: ['Catalizador degradado', 'Tapón gasolina flojo', 'EGR obstruida'], solutions: ['Apretar tapón', 'Limpiar válvula EGR', 'Verificar fugas']
             },
             'P05': { 
-                sys: 'Velocidad y Ralentí', symptoms: ['Se apaga al frenar', 'RPM locas'],
-                causes: ['IAC sucia', 'Cuerpo aceleración sucio', 'Fugas'], solutions: ['Limpiar cuerpo aceleración', 'Calibrar IAC']
+                sys: 'Velocidad y Ralentí', symptoms: ['Se apaga al frenar', 'RPM suben/bajan', 'Velocímetro falla'],
+                causes: ['Válvula IAC sucia', 'Cuerpo aceleración sucio', 'Fugas vacío'], solutions: ['Limpiar cuerpo aceleración', 'Calibrar IAC', 'Revisar alternador']
             },
             'P06': { 
-                sys: 'ECU y Salidas', symptoms: ['No arranca', 'Tablero falla'],
-                causes: ['Batería baja', 'Tierras mal', 'ECU daño'], solutions: ['Cargar batería', 'Limpiar tierras', 'Revisar fusibles']
+                sys: 'ECU y Salidas', symptoms: ['No arranca', 'Tablero falla', 'Luces parpadean', 'Cambios bruscos'],
+                causes: ['Batería baja', 'Tierras sulfatadas', 'ECU dañada'], solutions: ['Cargar batería 100%', 'Limpiar tierras', 'Revisar fusibles']
             },
             'P07': { 
-                sys: 'Transmisión Auto', symptoms: ['Golpes al cambiar', 'No cambia'],
-                causes: ['Nivel aceite bajo', 'Solenoide mal', 'Aceite viejo'], solutions: ['Nivel ATF', 'Cambiar aceite', 'Revisar solenoides']
+                sys: 'Transmisión Auto', symptoms: ['Golpes al cambiar', 'No entra cambio', 'RPM altas', 'Modo seguridad'],
+                causes: ['Nivel aceite bajo', 'Solenoide atascado', 'Aceite degradado'], solutions: ['Nivelar aceite ATF', 'Cambiar aceite/filtro', 'Revisar solenoides']
             },
-            'B': { sys: 'Carrocería', symptoms: ['Fallo eléctrico', 'Airbag'], causes: ['Fusible', 'Cable cortado'], solutions: ['Revisar fusibles', 'Escanear BCM'] },
-            'C': { sys: 'Chasis/ABS', symptoms: ['Luz ABS', 'Dirección dura'], causes: ['Sensor rueda', 'Módulo ABS'], solutions: ['Limpiar sensores', 'Purgar frenos'] },
-            'U': { sys: 'Red Comunicación', symptoms: ['No arranca', 'Fallo general'], causes: ['Módulo off', 'Cable CAN roto'], solutions: ['Batería 100%', 'Revisar red CAN'] }
+            'B': { sys: 'Carrocería', symptoms: ['Fallo eléctrico', 'Luz Airbag', 'Aire A/C no va'], causes: ['Fusible quemado', 'Cable cortado', 'Módulo BCM'], solutions: ['Revisar fusibles', 'Escanear BCM', 'Rastrear cortocircuito'] },
+            'C': { sys: 'Chasis/ABS', symptoms: ['Luz ABS/ESP', 'Dirección dura', 'Frenado raro'], causes: ['Sensor rueda sucio', 'Módulo ABS sin energía'], solutions: ['Limpiar sensores', 'Purgar frenos', 'Revisar fusibles ABS'] },
+            'U': { sys: 'Red Comunicación', symptoms: ['No arranca', 'Fallo general', 'Tablero loco'], causes: ['Módulo desconectado', 'Cable CAN cortado', 'Batería baja'], solutions: ['Batería al 100%', 'Revisar red CAN', 'Revisar conectores'] }
         };
 
         // --- BASE DE DATOS COMPLETA RESTAURADA ---
@@ -421,16 +435,16 @@
 
             return `
             <div class="glass-panel rounded-xl overflow-hidden code-card flex flex-col h-full border-t-4 ${colors.split(' ')[1]}">
-                <div class="card-header p-5 border-b border-gray-200 dark:border-slate-700/50 bg-gray-50 dark:bg-slate-800/30 flex justify-between items-start relative">
+                <div class="card-header p-4 md:p-5 border-b border-gray-200 dark:border-slate-700/50 bg-gray-50 dark:bg-slate-800/30 flex justify-between items-start relative">
                     <div>
                         <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase ${colors} border border-opacity-20 mb-2">${item.s}</span>
-                        <h2 class="text-3xl font-mono font-bold text-slate-800 dark:text-white card-title-lg">${item.c}</h2>
+                        <h2 class="text-2xl md:text-3xl font-mono font-bold text-slate-800 dark:text-white card-title-lg">${item.c}</h2>
                         <p class="text-xs text-blue-600 dark:text-blue-400 font-bold uppercase">${item.sysName}</p>
                     </div>
                     <div class="text-4xl opacity-5 dark:text-white dark:opacity-10 absolute top-4 right-4 font-mono select-none">${item.c.charAt(0)}</div>
                 </div>
                 
-                <div class="card-body p-5 flex-grow flex flex-col gap-3">
+                <div class="card-body p-4 md:p-5 flex-grow flex flex-col gap-3">
                     <div class="card-details">
                         <h3 class="text-lg font-bold text-slate-700 dark:text-slate-100 leading-tight mb-2">${item.t}</h3>
                         <p class="text-sm text-slate-500 dark:text-slate-400 card-desc">${item.d}</p>
@@ -439,12 +453,16 @@
                     ${!isCompact ? `
                     <div class="space-y-2 mt-auto pt-2 text-sm card-details">
                         <div class="bg-gray-100 dark:bg-slate-900/50 p-2 rounded border border-gray-200 dark:border-slate-700">
-                            <strong class="text-rose-500 text-xs uppercase block mb-1">Causas Probables</strong>
-                            <p class="text-slate-600 dark:text-slate-400 truncate">${item.causes.join(', ')}</p>
+                            <strong class="text-purple-500 dark:text-purple-400 text-xs uppercase block mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Síntomas</strong>
+                            <p class="text-slate-600 dark:text-slate-400 truncate text-xs">${item.symptoms.join(', ')}</p>
                         </div>
                         <div class="bg-gray-100 dark:bg-slate-900/50 p-2 rounded border border-gray-200 dark:border-slate-700">
-                            <strong class="text-emerald-600 dark:text-emerald-500 text-xs uppercase block mb-1">Solución</strong>
-                            <p class="text-slate-600 dark:text-slate-300">${item.solutions[0]}</p>
+                            <strong class="text-rose-500 text-xs uppercase block mb-1"><i class="fa-solid fa-magnifying-glass mr-1"></i> Causas</strong>
+                            <p class="text-slate-600 dark:text-slate-400 truncate text-xs">${item.causes.join(', ')}</p>
+                        </div>
+                        <div class="bg-gray-100 dark:bg-slate-900/50 p-2 rounded border border-gray-200 dark:border-slate-700">
+                            <strong class="text-emerald-600 dark:text-emerald-500 text-xs uppercase block mb-1"><i class="fa-solid fa-screwdriver-wrench mr-1"></i> Solución</strong>
+                            <p class="text-slate-600 dark:text-slate-300 text-xs">${item.solutions[0]}</p>
                         </div>
                     </div>
                     ` : ''}
